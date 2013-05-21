@@ -14,7 +14,7 @@ setup(
     author='Christoph Heer',
     author_email='Christoph.Heer@googlemail.com',
     description='Wrapper WebService for rapla.dhbw-karlsruhe.de',
-    packages=['rapla_cleaner'],
+    py_modules=['rapla_cleaner'],
     zip_safe=False,
     install_requires=[
         'Flask==0.9'
