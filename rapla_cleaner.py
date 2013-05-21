@@ -37,7 +37,7 @@ def clean():
 
     # Error codes are to simple -.-
     if not req.headers.get('content-type') or \
-       req.headers.get('content-type').startswith('text/calendar'):
+       not req.headers.get('content-type').startswith('text/calendar'):
         return (
             "Rapla raised a error..." + "\n" * 3 + req.text,
             400,
