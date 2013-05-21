@@ -6,6 +6,7 @@ app = Flask(__name__)
 
 
 def split_vevents(input):
+    # Maybe there is a better way to split the events...
     in_event_data = False
     event_data = ""
     for line in input.splitlines():
@@ -23,23 +24,35 @@ def split_vevents(input):
 
 @app.route("/")
 def clean():
-
     if 'user' not in request.args:
-        return "Missing Rapla User"
+        return "Missing Rapla User", 400
     elif 'file' not in request.args:
-        return "Missing Rapla Filename"
+        return "Missing Rapla Filename", 400
 
-    r = requests.get(
+    # Get original iCal file
+    req = requests.get(
         'http://rapla.dhbw-karlsruhe.de/rapla?page=iCal&user=%s&file=%s' %
         (request.args['user'], request.args['file'])
     )
-    data, events = r.text.split('BEGIN:VEVENT', 1)
 
+    # Error codes are to simple -.-
+    if not req.headers.get('content-type') or \
+       req.headers.get('content-type').startswith('text/calendar'):
+        return (
+            "Rapla raised a error..." + "\n" * 3 + req.text,
+            400,
+            {'Content-Type': 'text/plain; charset=utf-8'}
+        )
+
+    # Lets play with iCal data
+    data, events = req.text.split('BEGIN:VEVENT', 1)
     for event in split_vevents(events):
+        # Optional courses are overrated
         if re.findall(r'SUMMARY:.*?(Z).*?', event) and \
            'without_z_courses' in request.args:
             continue
 
+        # Fix it!
         if 'EXDATE' in event:
             tz, t = re.findall(r'DTSTART;TZID=(.*?):\d+T(\d+)', event)[0]
             data += re.sub(
